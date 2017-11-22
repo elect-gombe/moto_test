@@ -2,6 +2,8 @@ var moto;
 var moto2;
 var max_motor_speed;
 var oldangle,newangle;
+var is_start;
+var ischased;
 
 function Test_Moto() {
     camera.position.y = 0;
@@ -49,6 +51,7 @@ function Test_Moto() {
     fd.density = 2;
 
     moto2.CreateFixtureFromDef(fd);
+    document.getElementById("message").innerHTML = "対戦相手を探しています。";
 }
 
 function Moto(world,gpx, mirror) {
@@ -461,6 +464,7 @@ Test_Moto.prototype.Step = function() {
 
 Test_Moto.prototype.Keyboard = function(char, code) {
     //console.log(code)
+    
     switch (code) {
         case 90:case 87:case 38: this.input.up = 1; break;
         case 83:case 40: this.input.down = 1; break;
@@ -809,6 +813,10 @@ socket.on('informtiming',function(){
 	pv:moto.body.GetLinearVelocity(),
 	pav:moto.body.GetAngularVelocity()
     });
+});
+
+socket.on('are-you-ready',function(dat){
+    document.getElementById("message").innerHTML = "are you ready?";
 });
 
 socket.on('count',function(dat){
