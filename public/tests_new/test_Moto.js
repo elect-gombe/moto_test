@@ -2,8 +2,8 @@ var moto;
 var moto2;
 var max_motor_speed;
 var oldangle,newangle;
-var is_start;
 var ischased;
+var prx;
 
 function Test_Moto() {
     camera.position.y = 0;
@@ -51,7 +51,7 @@ function Test_Moto() {
     fd.density = 2;
 
     moto2.CreateFixtureFromDef(fd);
-    document.getElementById("message").innerHTML = "対戦相手を探しています。";
+
 }
 
 function Moto(world,gpx, mirror) {
@@ -77,10 +77,10 @@ Moto.prototype = {
     restart:function(ground){
 	gpx = this.position.x;
         console.log(this.isDead)
- //       if (!this.isDead) return;
+	//       if (!this.isDead) return;
 	testSwitch("Test_Moto");
 	return;
-         // destroy
+        // destroy
         this.destroy();
         this.player_start = new b2Vec2();
         this.position = new b2Vec2();
@@ -200,10 +200,10 @@ Moto.prototype = {
 
         force_leg = rotate_point({ x: this.mirror * force, y: 0 }, moto_angle, { x: 0, y: 0 });
         force_leg.y = this.mirror * force_leg.y;
-     
+	
         this.rider.lower_leg.ApplyForce(force_leg, this.rider.lower_leg.GetWorldCenter());
     },
-  
+    
     flip : function() {
         if (!this.isDead) {
             flip(this);
@@ -411,17 +411,17 @@ Test_Moto.prototype.onImput = function() {
 }
 
 Test_Moto.prototype.AddVFX = function(p) {
-  var vfx = this.VFX[this.VFXIndex];
-  if (vfx !== null) {
-    vfx.Destroy();
-    this.VFX[this.VFXIndex] = null;
-  }
-  this.VFX[this.VFXIndex] = new ParticleVFX(
-    this.particleSystem, p, Math.rand(1, 2), Math.rand(10, 20), Math.rand(0.5, 1));
+    var vfx = this.VFX[this.VFXIndex];
+    if (vfx !== null) {
+	vfx.Destroy();
+	this.VFX[this.VFXIndex] = null;
+    }
+    this.VFX[this.VFXIndex] = new ParticleVFX(
+	this.particleSystem, p, Math.rand(1, 2), Math.rand(10, 20), Math.rand(0.5, 1));
 
-  if (++this.VFXIndex >= this.maxVFX) {
-    this.VFXIndex = 0;
-  }
+    if (++this.VFXIndex >= this.maxVFX) {
+	this.VFXIndex = 0;
+    }
 };
 
 Test_Moto.prototype.Step = function() {
@@ -440,7 +440,7 @@ Test_Moto.prototype.Step = function() {
     newangle = this.moto.body.GetAngle();
     max_motor_speed += ((Math.abs(newangle/3.141592653589793238/2)>>0)-(Math.abs(oldangle/3.141592653589793238/2)>>0)) * 5;
     oldangle = newangle;
-    console.log(max_motor_speed);
+    //console.log(max_motor_speed);
     if(!this.moto.isDestroy && !this.moto.isDead){
         if(this.needKill){
             this.moto.kill();
@@ -464,89 +464,91 @@ Test_Moto.prototype.Step = function() {
 
 Test_Moto.prototype.Keyboard = function(char, code) {
     //console.log(code)
-    
+    if(isstart == false){
+	code = 0;
+    }
     switch (code) {
-        case 90:case 87:case 38: this.input.up = 1; break;
-        case 83:case 40: this.input.down = 1; break;
-        case 81:case 65:case 37: this.input.left = 1; break;
-        case 68:case 39: this.input.right = 1; break;
-        case 69: this.moto.rider.eject(); break;
-        case 82: this.moto.flip(); break;
-        case 32: this.moto.restart(this.ground); break;
+    case 90:case 87:case 38: this.input.up = 1; break;
+    case 83:case 40: this.input.down = 1; break;
+    case 81:case 65:case 37: this.input.left = 1; break;
+    case 68:case 39: this.input.right = 1; break;
+    case 69: this.moto.rider.eject(); break;
+    case 82: this.moto.flip(); break;
+    case 32: this.moto.restart(this.ground); break;
     }
 };
 
 Test_Moto.prototype.KeyboardUp = function(char, code) {
     switch (code) {
-        case 90:case 87:case 38: this.input.up = 0; break;
-        case 83:case 40: this.input.down = 0; break;
-        case 81:case 65:case 37: this.input.left = 0; break;
-        case 68:case 39: this.input.right = 0; break;
+    case 90:case 87:case 38: this.input.up = 0; break;
+    case 83:case 40: this.input.down = 0; break;
+    case 81:case 65:case 37: this.input.left = 0; break;
+    case 68:case 39: this.input.right = 0; break;
     }
 };
 
 function ParticleVFX(ps, origin, size, speed, lifetime) {
-  var shape = new b2CircleShape;
-  shape.position = origin;
-  shape.radius = size;
+    var shape = new b2CircleShape;
+    shape.position = origin;
+    shape.radius = size;
 
-  var pd = new b2ParticleGroupDef;
-  pd.shape = shape;
-  this.origColor = new b2ParticleColor(255,0,0, 255);
-  pd.color = this.origColor;
-  pd.flags = b2_powderParticle;
-  this.particleSystem = ps;
-  this.pg = this.particleSystem.CreateParticleGroup(pd);
+    var pd = new b2ParticleGroupDef;
+    pd.shape = shape;
+    this.origColor = new b2ParticleColor(255,0,0, 255);
+    pd.color = this.origColor;
+    pd.flags = b2_powderParticle;
+    this.particleSystem = ps;
+    this.pg = this.particleSystem.CreateParticleGroup(pd);
 
-  this.initialLifetime = this.remainingLifetime = lifetime;
-  this.halfLifetime = this.initialLifetime * 0.5;
+    this.initialLifetime = this.remainingLifetime = lifetime;
+    this.halfLifetime = this.initialLifetime * 0.5;
 
-  var bufferIndex = this.pg.GetBufferIndex();
-  var pos = this.particleSystem.GetPositionBuffer();
-  var vel = this.particleSystem.GetVelocityBuffer();
-  var count = this.pg.GetParticleCount();
+    var bufferIndex = this.pg.GetBufferIndex();
+    var pos = this.particleSystem.GetPositionBuffer();
+    var vel = this.particleSystem.GetVelocityBuffer();
+    var count = this.pg.GetParticleCount();
 
-  // the array is  2 times count
-  for (var i = bufferIndex * 2; i < (bufferIndex + count) * 2; i += 2) {
-    vel[i] = (pos[i] - origin.x) * speed;
-    vel[i + 1] = (pos[i + 1] - origin.y) * speed;
-  }
+    // the array is  2 times count
+    for (var i = bufferIndex * 2; i < (bufferIndex + count) * 2; i += 2) {
+	vel[i] = (pos[i] - origin.x) * speed;
+	vel[i + 1] = (pos[i + 1] - origin.y) * speed;
+    }
 }
 
 /**@return number*/
 ParticleVFX.prototype.ColorCoeff = function() {
-  if (this.remainingLifetime >= this.halfLifetime) {
-    return 1;
-  }
-  return 1 - ((this.halfLifetime - this.remainingLifetime) / this.halfLifetime);
+    if (this.remainingLifetime >= this.halfLifetime) {
+	return 1;
+    }
+    return 1 - ((this.halfLifetime - this.remainingLifetime) / this.halfLifetime);
 };
 
 ParticleVFX.prototype.Step = function(dt) {
-  if (this.remainingLifetime > 0.0) {
-    this.remainingLifetime = Math.max(this.remainingLifetime - dt, 0.0);
-    var coeff = this.ColorCoeff();
+    if (this.remainingLifetime > 0.0) {
+	this.remainingLifetime = Math.max(this.remainingLifetime - dt, 0.0);
+	var coeff = this.ColorCoeff();
 
-    var colors = this.particleSystem.GetColorBuffer();
-    var bufferIndex = this.pg.GetBufferIndex();
+	var colors = this.particleSystem.GetColorBuffer();
+	var bufferIndex = this.pg.GetBufferIndex();
 
-    // Set particle colors all at once.
-    // 4 bytes per color
-    for (var i = bufferIndex * 4;
-      i < (bufferIndex + this.pg.GetParticleCount())*4; i += 4) {
-      colors[i+3] *= coeff;
-      colors[i + 1] *= coeff;
-      colors[i + 2] *= coeff;
+	// Set particle colors all at once.
+	// 4 bytes per color
+	for (var i = bufferIndex * 4;
+	     i < (bufferIndex + this.pg.GetParticleCount())*4; i += 4) {
+	    colors[i+3] *= coeff;
+	    colors[i + 1] *= coeff;
+	    colors[i + 2] *= coeff;
+	}
     }
-  }
 };
 
 /**@return bool*/
 ParticleVFX.prototype.IsDone = function() {
-  return this.remainingLifetime <= 0;
+    return this.remainingLifetime <= 0;
 };
 
 ParticleVFX.prototype.Destroy = function() {
-  this.pg.DestroyParticles(false);
+    this.pg.DestroyParticles(false);
 };
 
 
@@ -562,8 +564,8 @@ function cloneCST(constant, mirror, pos){
         obj.y = pos.y + constant.y;
     }
     if(constant.decal){
-       // obj.x = constant.decal.x;
-       // obj.y = constant.decal.y;
+	// obj.x = constant.decal.x;
+	// obj.y = constant.decal.y;
         obj.angle = constant.decal.angle;
         constant.decal=null;
     }
@@ -737,7 +739,7 @@ var Constants = (function() {
 
     return Constants;
 
-  })();
+})();
 
 function flip(moto){
     var old = {};
@@ -805,8 +807,45 @@ function flip(moto){
 
 var socket = io();
 
-socket.on('informtiming',function(){
-    if(this.isDead)moto.position.y = 100;
+socket.on('userinfo',function(dat){
+    ischased = dat.user;
+    //console.log("userid"+ischased);
+});
+
+var time;
+socket.on('informtiming',function(dat){
+    time = dat;
+    //console.log(time);
+    if(document.getElementById("message").innerHTML.match(/you/) == null){
+	if(ischased){
+	    if(time > 130){
+		document.getElementById("message").innerHTML = "にげきれ！　準備は良いか?"+ischased;
+	    }else if(time > 100){
+		document.getElementById("message").innerHTML = 1+(time-100)/10>>0;
+	    }else{
+		isstart = true;
+		if((1+(time+600)/10>>0)==0){
+		    document.getElementById("message").innerHTML = "you win";
+		}else{
+		    document.getElementById("message").innerHTML = "にげきれ！　のこり"+(1+(time+600)/10>>0)+"秒";
+		}
+	    }
+	}else{
+	    if(time > 30){
+		document.getElementById("message").innerHTML = "追いつけ！ 準備は良いか?";
+	    }else if(time > 0){
+		document.getElementById("message").innerHTML = 1+(time)/10>>0;
+	    }else{
+		isstart = true;
+		if((1+(time+600)/10>>0)==0){
+		    document.getElementById("message").innerHTML = "you lose";
+		}else{
+		    document.getElementById("message").innerHTML = "追いつけ！ のこり"+(1+(time+600)/10>>0)+"秒";
+		}
+	    }
+	}
+    }
+    prx = moto.position.x;
     socket.emit("informcount",{
 	pp:moto.position,
 	pr:moto.body.GetAngle(),
@@ -815,13 +854,22 @@ socket.on('informtiming',function(){
     });
 });
 
-socket.on('are-you-ready',function(dat){
-    document.getElementById("message").innerHTML = "are you ready?";
-});
-
 socket.on('count',function(dat){
     dat.pp.y += 0.5;
     moto2.SetTransform(dat.pp,dat.pr);
     moto2.SetLinearVelocity(dat.pv);
     moto2.SetAngularVelocity(dat.pav);
+    console.log("time="+time);
+    if(time < 0){
+	if(Math.abs(dat.pp.x - moto.position.x) < 3){
+	    console.log(Math.abs(dat.pp.x - moto.position.x));
+	    if(document.getElementById("message").innerHTML.match(/you/) == null){
+		if(ischased){
+		    document.getElementById("message").innerHTML = "you lose(chased)";
+		}else{
+		    document.getElementById("message").innerHTML = "you win(chase)";
+		}
+	    }
+	}
+    }
 });

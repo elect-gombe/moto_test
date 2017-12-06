@@ -8,7 +8,7 @@ app.use(express.static(__dirname + '/public'));
 
 var p = 0;
 var i = 0;
-var count = 5*5;
+var count = 15*10;
 var timerid;
 io.on('connection', function(socket){
     socket.userid = i++;
@@ -16,14 +16,10 @@ io.on('connection', function(socket){
     if(i==2){
 	console.log("let's start!!");
 	timerid = setInterval(function(){
-	    if(count > 0){
-		count--;
-		io.emit('are-you-ready',count);
-	    }else{
-		io.emit('informtiming');
-		console.log("request....");
-	    }
-	}, 150);
+	    count--;
+	    io.emit('informtiming',count);
+	    console.log("request....");
+	}, 100);
     }
     socket.emit('userinfo',
 		{
@@ -43,11 +39,11 @@ io.on('connection', function(socket){
     socket.on('disconnect',function(){
 	io.emit("AFK");
 	console.log("disconnected");
-	count = 5*7;
+	count = 15*10;
 	i--;
 	clearInterval(timerid);
     });
     console.log("hogeend");
 });
 
-http.listen(port, '172.22.3.135', () => console.log('listening on port ' + port));
+http.listen(port, 'localhost', () => console.log('listening on port ' + port));
